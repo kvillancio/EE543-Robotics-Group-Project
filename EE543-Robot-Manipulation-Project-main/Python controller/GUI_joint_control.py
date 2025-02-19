@@ -9,7 +9,7 @@ RC.communication_begin()
 RC.joints_homing()  # Force homing of the robot
 
 # Control parameters
-increment = 0.5               # Increment angle (in degrees)
+increment = 5               # Increment angle (in degrees)
 goals = np.zeros(RC.joint_num)
 speeds = np.ones(RC.joint_num) * 80   # Speed in degrees per second
 
@@ -72,8 +72,8 @@ def grasper_close():
     RC.gripper_close()
 
 def exit_app():
-    RC.communication_end()
     root.destroy()
+    RC.communication_end()
     sys.exit('Closing GUI controller')
 
 # Create the main GUI window
