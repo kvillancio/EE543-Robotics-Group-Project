@@ -1,6 +1,6 @@
 // For EE543 project, the amount of joints is 4
 /*This version of firmware is for the arduino that will reset when the serial port is connected*/
-#define JOINT_NUM 4
+#define JOINT_NUM 5
 
 // Define communication protocal
 #define INIT_UNO 'I'

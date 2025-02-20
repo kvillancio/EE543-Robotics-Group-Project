@@ -9,7 +9,7 @@ np.set_printoptions(formatter={'all': lambda x: f'{x:.2f}'})
 class robot_controller():
     def __init__(self) -> None:
         #define robot parameter
-        self.joint_num = 4
+        self.joint_num = 5
         self.joints_goto_tolerance = 10e-3
 
         #define robot state
