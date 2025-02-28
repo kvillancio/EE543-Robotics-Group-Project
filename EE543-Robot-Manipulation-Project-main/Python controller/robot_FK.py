@@ -10,8 +10,6 @@ import numpy as np
 import AdelmanPy as ap
 
 
-gamma = np.array([0, np.pi/4, np.pi/4, np.pi/4, np.pi/4])
-
 def FK(gamma):
     """
     Calculate the forward kinematics of a 5 rotary joint robot using DH convention.
@@ -23,36 +21,34 @@ def FK(gamma):
         np.ndarray: A 4x4 homogeneous transformation matrix representing the end-effector pose.
     """
     
-    # Re-organize variables
-    theta1 = gamma[0]  # base joint
-    theta2 = gamma[1]  # joint 1
-    theta3 = gamma[2]  # joint 2
-    theta4 = gamma[3]  # joint 3
-    theta5 = gamma[4]  # grasper angle
-
     # Placeholder DH parameters [a, alpha, d, theta]
     dh_params = [
-        [0, 0, 0, theta1],  # Joint 1
-        [0, 0, 0, theta2],  # Joint 2
-        [0, 0, 0, theta3],  # Joint 3
-        [0, 0, 0, theta4],  # Joint 4
-        [0, 0, 0, theta5]   # Joint 5
+        [1, 0, 0, gamma[0]],  # Joint 1
+        [1, np.pi/2, 0, gamma[1]],  # Joint 2
+        [1, 0, 0, gamma[2]],  # Joint 3
+        [1, 0, 0, gamma[3]],  # Joint 4
+        [1, 0, 0, gamma[4]]  # Joint 5
     ]
 
     # Initialize transformation matrix
     T = np.eye(4)
 
+    # Initialize a list to store individual transformation matrices
+    T_matrices = []
+
     # Compute the transformation matrix for each joint
-    for params in dh_params:
-        a, alpha, d, theta = params
-        T = T @ ap.Hrotx(alpha) @ ap.Hroty(theta) @ ap.Hrotz(a) @ np.array([[1, 0, 0, d], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+    for a, alpha, d, theta in dh_params:
+        # Compute the transformation matrix for the current joint
+        T_joint = ap.Hrotx(alpha) @ ap.Hroty(theta) @ ap.Hrotz(a) @ np.array([[1, 0, 0, d], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+        # Update the overall transformation matrix
+        T = T @ T_joint
+        # Store the current joint's transformation matrix
+        T_matrices.append(T_joint)
 
-    return T
-
-# Example usage
-gamma = np.array([0, np.pi/4, np.pi/4, np.pi/4, np.pi/4])
-end_effector_pose = FK(gamma)
-print(end_effector_pose)
+    # T is the final transformation matrix representing the end-effector pose
+    # T_matrices is a list of individual transformation matrices for each joint
+    # T_matrices should have 5 elements, one for each joint
+    return T, T_matrices
 
 
 
