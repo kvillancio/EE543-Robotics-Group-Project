@@ -1,6 +1,6 @@
 // For EE543 project, the amount of joints is 4
 /*This version of firmware is for the arduino that will reset when the serial port is connected*/
-#define JOINT_NUM 5
+#define JOINT_NUM 4
 
 // Define communication protocal
 #define INIT_UNO 'I'
@@ -75,7 +75,7 @@ void debug_pin_state()
 
 //include necessary library
 // #include <wire.h>
-#include "Adafruit_PWMServoDriver.h"
+#include <Adafruit_PWMServoDriver.h>
 
 //create servo board object
 // called this way, it uses the default address 0x40
