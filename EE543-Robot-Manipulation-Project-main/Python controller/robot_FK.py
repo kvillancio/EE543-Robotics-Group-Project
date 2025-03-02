@@ -42,14 +42,31 @@ def FK(theta):
     T_2T3 = ap.DH2T(DH[1], DH[2])
     T_3T4 = ap.DH2T(DH[2], DH[3])
     T_4T5 = ap.DH2T(DH[3], DH[4])
+    # Store all transformation matrices
+    T_matrices = {
+        'T_0T1': T_0T1,
+        'T_1T2': T_1T2,
+        'T_2T3': T_2T3,
+        'T_3T4': T_3T4,
+        'T_4T5': T_4T5
+    }
 
-    # Final transformation matrix
-    T_0T5 = T_0T1 @ T_1T2 @ T_2T3 @ T_3T4 @ T_4T5
+    # Calculate all transformation matrices with respect to frame zero
+    T_0T2 = T_0T1 @ T_1T2
+    T_0T3 = T_0T2 @ T_2T3
+    T_0T4 = T_0T3 @ T_3T4
+    T_0T5 = T_0T4 @ T_4T5
+
+    T_matrices_zero = {
+        'T_0T1': T_0T1,
+        'T_0T2': T_0T2,
+        'T_0T3': T_0T3,
+        'T_0T4': T_0T4,
+        'T_0T5': T_0T5
+    }
 
     # Return the results
-    return T_0T5
-
-
+    return T_matrices, T_matrices_zero
 
 
 
