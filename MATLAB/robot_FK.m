@@ -1,8 +1,8 @@
-function [r, q, T] = robot_FK(gamma)
+function [r, q, T] = robot_FK(theta)
 % robot_FK calculates the forward kinematics for the project robot
 %
 % Inputs:
-% gamma : 5x1 vector of joint angles (rad)
+% theta : 5x1 vector of joint angles (rad)
 %
 % Outputs:
 % r : table containing the position vectors for all links and points of
@@ -13,91 +13,37 @@ function [r, q, T] = robot_FK(gamma)
 %     all links and points of interest
 %
 % Example:
-% [r, q, T] = VP_6242_FK([0; pi; 12; 0; pi/2], current_fig, frameNum);
-%
-% required m-files:
-%   rotx.m
-%     DCM rotation about x axis
-%   roty.m
-%     DCM rotation about y axis
-%   rotz.m
-%     DCM rotation about z axis
-%   qrotx.m
-%     quaternion rotation about x axis
-%   qroty.m
-%     quaternion rotation about y axis
-%   qrotz.m
-%     quaternion rotation about z axis
-%   rotq.m
-%     convert quaternion to DCM
-%   quatmult.m
-%     multiply two quaternions together
-%
-% Subfunctions:
-%   None
-%
-% required MAT-files:
-%   None
-%
-% Author: Ian Adelman
-% Email: IanAdelman@outlook.com
-% Created: 04/08/2023
-% Revised: revisedDate
-%
-% Ver#: 1.1 : revised_date
-% Version Notes:
-%   [[notes about changes since previous versions or important info]
+% [r, q, T] = robot_FK([0; pi; 12; 0; pi/2], current_fig, frameNum);
 %
 
-
-%% initialzie robot geometry vectors
-% initialize position vector table:
-r = table();
-
-% initialize position vectors in their respective frames
-r.('IIr1') = [ 0     ; 0; 0.1550]*1000; % (m)
-r.('11r2') = [ 0     ; 0; 0.1235]*1000; % (m)
-r.('22r3') = [ 0     ; 0; 0.2100]*1000; % (m)
-r.('33r4') = [-0.0750; 0; 0.0860]*1000; % (m)
-r.('44rE') = [ 0.1250; 0; 0     ]*1000; % (m)
+if nargin == 0
+    theta = zeros(5,1);
+    warning("no input, assuming zero configuration")
+end
 
 
-%% calculate quaternions
-% initialzie quaternion table
-q = table();
-
-% calculate quaternions from current robot joint angles
-q.('Iq1') = qrotz(gamma(1));
-q.('1q2') = qroty(gamma(2));
-q.('2q3') = qroty(gamma(3));
-q.('3q4') = quatmult(qroty(-pi/2), qrotx(gamma(4)));
-q.('4qE') = qrotx(gamma(5));
+l1 = .23;
+l2 = .12;
+l3 = .53;
+l4 = .12;
+l5 = .19;
 
 
-% transform quaternions into base frame
-q.('Iq2') = quatmult(q.('Iq1'), q.('1q2'));
-q.('Iq3') = quatmult(q.('Iq2'), q.('2q3'));
-q.('Iq4') = quatmult(q.('Iq3'), q.('3q4'));
-q.('IqE') = quatmult(q.('Iq4'), q.('4q5'));
+DH = [          0, l1,  0, theta(1);...
+      deg2rad(90), l2,  0, theta(2);...
+                0, l3,  0, theta(3);...
+      deg2rad(90),  0, l4, theta(4);...
+                0,  0, l5,       0];
+
+T_0T1 = DH2T(zeros(1,4), DH(1,1:4));
+T_1T2 = DH2T(DH(1,1:4), DH(2,1:4));
+T_2T3 = DH2T(DH(2,1:4), DH(3,1:4));
+T_3T4 = DH2T(DH(3,1:4), DH(4,1:4));
+T_4T5 = DH2T(DH(4,1:4), DH(5,1:4));
+
+T_0T5 = T_0T1*T_1T2*T_2T3*T_3T4*T_4T5;
 
 
-%% calculate DCMs from quaternions
-% initialize DCM table
-T = table();
 
-% calculate DCMs
-T.('IT1') = rotq(q.('Iq1'));
-T.('IT2') = rotq(q.('Iq2'));
-T.('IT3') = rotq(q.('Iq3'));
-T.('IT4') = rotq(q.('Iq4'));
-T.('ITE') = rotq(q.('IqE'));
-
-
-%% calculate position vectors in the base frame
-r.('IIr2') = r.('IIr1') + T.('IT1')*r.('11r2');
-r.('IIr3') = r.('IIr2') + T.('IT2')*r.('22r3');
-r.('IIr4') = r.('IIr3') + T.('IT3')*r.('33r4');
-r.('IIrE') = r.('IIr4') + T.('IT4')*r.('44rE');
-
-
+T = table(T_0T1, T_1T2, T_2T3, T_3T4, T_4T5, T_0T5);
 end
