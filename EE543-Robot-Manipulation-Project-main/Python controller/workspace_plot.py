@@ -3,38 +3,48 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from robot_FK import FK
 
-def plot_workspace():
-    # Define the range of joint angles (in radians)
-    joint_ranges = [
-        np.linspace(0, 2*np.pi, 10),  # Joint 1
-        np.linspace(-np.pi/2, np.pi/2, 10),  # Joint 2
-        np.linspace(-np.pi/2, np.pi/2, 10),  # Joint 3
-        np.linspace(-np.pi/2, np.pi/2, 10),  # Joint 4
-        np.linspace(-np.pi/2, np.pi/2, 10)   # Joint 5 (Gripper)
-    ]
+def plot_workspace(num_samples=100000, joint_limits=None):
+    """
+    plot_workspace plots the workspace of the robot's end effector position
+    using a Monte Carlo simulation.
 
-    # Initialize lists to store the end-effector positions
-    x_coords, y_coords, z_coords = [], [], []
+    Inputs:
+    num_samples : Number of samples for the Monte Carlo simulation
+    joint_limits : 5x2 matrix of joint limits [min, max] for each joint
 
-    # Iterate through all combinations of joint angles
-    for theta1 in joint_ranges[0]:
-        for theta2 in joint_ranges[1]:
-            for theta3 in joint_ranges[2]:
-                for theta4 in joint_ranges[3]:
-                    for theta5 in joint_ranges[4]:
-                        # Calculate the forward kinematics
-                        gamma = [theta1, theta2, theta3, theta4, theta5]
-                        T, _ = FK(gamma)
-                        
-                        # Extract the end-effector position
-                        x_coords.append(T[0, 3])
-                        y_coords.append(T[1, 3])
-                        z_coords.append(T[2, 3])
+    Example:
+    plot_workspace(1000, [[0, 2*np.pi], [-np.pi/2, np.pi/2], [-np.pi/2, np.pi/2], [-np.pi/2, np.pi/2], [-np.pi/2, np.pi/2]])
+    """
+    if joint_limits is None:
+        joint_limits = [
+            [0, np.pi],
+            [-np.pi/2, np.pi/2],
+            [-np.pi/2, np.pi/2],
+            [-np.pi/2, np.pi/2],
+            [-np.pi/2, np.pi/2]
+        ]
+
+    # Initialize arrays to store end effector positions
+    x_coords = np.zeros(num_samples)
+    y_coords = np.zeros(num_samples)
+    z_coords = np.zeros(num_samples)
+
+    for i in range(num_samples):
+        # Generate random joint angles within the specified limits
+        gamma = [np.random.uniform(joint_limits[j][0], joint_limits[j][1]) for j in range(5)]
+        
+        # Calculate forward kinematics
+        T = FK(gamma)
+        
+        # Extract the end-effector position
+        x_coords[i] = T[0, 3]
+        y_coords[i] = T[1, 3]
+        z_coords[i] = T[2, 3]
 
     # Create a 3D plot
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(x_coords, y_coords, z_coords, c='b', marker='o')
+    ax.scatter(x_coords, y_coords, z_coords, c='b', marker='o', alpha=0.1)
 
     # Set plot labels
     ax.set_xlabel('X')
