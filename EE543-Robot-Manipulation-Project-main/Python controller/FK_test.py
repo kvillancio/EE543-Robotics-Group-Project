@@ -16,11 +16,7 @@ np.set_printoptions(precision=3, suppress=True)
 gamma = np.array([0, 0, 0, 0, 0])
 
 # Perform forward kinematics to get the transformation matrices
-T, T_matrices = FK(gamma)
-
-# Print each transformation matrix
-for i, T_matrix in enumerate(T_matrices):
-    print(f"T_matrix {i+1}:\n{T_matrix}\n")
+T = FK(gamma)
 
 # Print the final transformation matrix
 print(f"Final transformation matrix T:\n{T}\n")
