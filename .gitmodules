@@ -1,3 +1,6 @@
 [submodule "MATLAB/robo_utils"]
 	path = MATLAB/robo_utils
 	url = https://github.com/Ian-q/robo_utils
+[submodule "EE543-Robot-Manipulation-Project-main/Python controller/AdelmanPy"]
+	path = EE543-Robot-Manipulation-Project-main/Python controller/AdelmanPy
+	url = https://github.com/Ian-q/AdelmanPy
