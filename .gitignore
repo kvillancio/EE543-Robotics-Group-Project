@@ -1,3 +1,5 @@
 **.DS_Store
 /.vscode
 /EE543-Robot-Manipulation-Project-main/Python controller/AdelmanPy/__pycache__
+*.pyc
+~$*
