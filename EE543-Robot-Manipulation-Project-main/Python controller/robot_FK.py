@@ -21,13 +21,21 @@ def FK(gamma):
         np.ndarray: A 4x4 homogeneous transformation matrix representing the end-effector pose.
     """
     
+    
+    # link lengths
+    l1 = .23
+    l2 = .12
+    l3 = .53
+    l4 = .12
+    l5 = .19
+    
     # Placeholder DH parameters [a, alpha, d, theta]
     dh_params = [
-        [1, 0, 0, gamma[0]],  # Joint 1
-        [1, np.pi/2, 0, gamma[1]],  # Joint 2
-        [1, 0, 0, gamma[2]],  # Joint 3
-        [1, 0, 0, gamma[3]],  # Joint 4
-        [1, 0, 0, gamma[4]]  # Joint 5
+        [             0, l1,  0, gamma[0]],  # Joint 1
+        [np.deg2rad(90), l2,  0, gamma[1]],  # Joint 2
+        [             0, l3,  0, gamma[2]],  # Joint 3
+        [np.deg2rad(90),  0, l4, gamma[3]],  # Joint 4
+        [             0,  0, l5,        0]   # Joint 5
     ]
 
     # Initialize transformation matrix
