@@ -1,19 +1,16 @@
-function [r, q, T] = robot_FK(theta)
+function [T] = robot_FK(theta)
 % robot_FK calculates the forward kinematics for the project robot
 %
 % Inputs:
 % theta : 5x1 vector of joint angles (rad)
 %
 % Outputs:
-% r : table containing the position vectors for all links and points of
-%     interest.
 % T : table containing the direction cosine matricies of the orientations
 %     of all links and points of interest
-% q : table containing the unit quaternions specifying the orientations of
-%     all links and points of interest
+
 %
 % Example:
-% [r, q, T] = robot_FK([0; pi; 12; 0; pi/2], current_fig, frameNum);
+% T = robot_FK([0; pi; 12; 0; pi/2], current_fig, frameNum);
 %
 
 if nargin == 0
