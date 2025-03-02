@@ -5,12 +5,12 @@ function [T] = robot_FK(theta)
 % theta : 5x1 vector of joint angles (rad)
 %
 % Outputs:
-% T : table containing the direction cosine matricies of the orientations
+% T : table containing the direction cosine matrices of the orientations
 %     of all links and points of interest
 
 %
 % Example:
-% T = robot_FK([0; pi; 12; 0; pi/2], current_fig, frameNum);
+% T = robot_FK([0; pi; 12; 0; pi/2]);
 %
 
 if nargin == 0
@@ -18,13 +18,11 @@ if nargin == 0
     warning("no input, assuming zero configuration")
 end
 
-
 l1 = .23;
 l2 = .12;
 l3 = .53;
 l4 = .12;
 l5 = .19;
-
 
 DH = [          0, l1,  0, theta(1);...
       deg2rad(90), l2,  0, theta(2);...
@@ -38,9 +36,12 @@ T_2T3 = DH2T(DH(2,1:4), DH(3,1:4));
 T_3T4 = DH2T(DH(3,1:4), DH(4,1:4));
 T_4T5 = DH2T(DH(4,1:4), DH(5,1:4));
 
-T_0T5 = T_0T1*T_1T2*T_2T3*T_3T4*T_4T5;
+T_0T2 = T_0T1 * T_1T2;
+T_0T3 = T_0T2 * T_2T3;
+T_0T4 = T_0T3 * T_3T4;
+T_0T5 = T_0T4 * T_4T5;
 
 
 
-T = table(T_0T1, T_1T2, T_2T3, T_3T4, T_4T5, T_0T5);
+T = table(T_0T1, T_0T2, T_0T3, T_0T4, T_0T5, T_1T2, T_2T3, T_3T4, T_4T5);
 end
