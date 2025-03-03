@@ -18,11 +18,11 @@ if nargin == 0
     warning("no input, assuming zero configuration")
 end
 
-l1 = .23;
-l2 = .12;
-l3 = .53;
-l4 = .12;
-l5 = .19;
+l1 = 0; % frames 0 and 1 are coincident
+l2 = 62.8;   % mm
+l3 = 92.77;  % mm
+l4 = 52.5;   % mm
+l5 = 165.39; % mm
 
 DH = [          0, l1,  0, theta(1);...
       deg2rad(90), l2,  0, theta(2);...
