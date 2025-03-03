@@ -28,7 +28,7 @@ function robot_draw(gamma, fig, frameNum)
         positions(:, i + 1) = T_matrix(1:3, 4);
     end
 
-    axis_scale = 1;
+    axis_scale = 200;
     if frameNum < 2
         % Set up figure
         fig = gcf;
@@ -72,5 +72,5 @@ function robot_draw(gamma, fig, frameNum)
                              'ZData', positions(3, i));
         end
     end
-    axis([-1, 1, -1, 1, -.5, 1.7]*axis_scale);
+    axis([-1, 1, -1, 1, -1, 1.7]*axis_scale);
 end
