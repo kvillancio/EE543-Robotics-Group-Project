@@ -34,12 +34,12 @@ def plot_workspace(num_samples=100000, joint_limits=None):
         gamma = [np.random.uniform(joint_limits[j][0], joint_limits[j][1]) for j in range(5)]
         
         # Calculate forward kinematics
-        T = FK(gamma)
+        _, T = FK(gamma)
         
         # Extract the end-effector position
-        x_coords[i] = T[0, 3]
-        y_coords[i] = T[1, 3]
-        z_coords[i] = T[2, 3]
+        x_coords[i] = T["T_0T5"][0, 3]
+        y_coords[i] = T["T_0T5"][1, 3]
+        z_coords[i] = T["T_0T5"][2, 3]
 
     # Create a 3D plot
     fig = plt.figure()
