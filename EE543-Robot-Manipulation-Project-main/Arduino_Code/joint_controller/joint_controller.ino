@@ -75,7 +75,7 @@ void debug_pin_state()
 
 //include necessary library
 // #include <wire.h>
-#include <Adafruit_PWMServoDriver.h>
+#include "Adafruit_PWMServoDriver.h"
 
 //create servo board object
 // called this way, it uses the default address 0x40
