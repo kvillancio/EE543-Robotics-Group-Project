@@ -55,9 +55,26 @@ line56 = line('Xdata', [r_00r5(1), r_00r6(1)],...
               'Zdata', [r_00r5(3), r_00r6(3)],...
               'color', 'black');
 
+% Draw coordinate frames at each joint
+% Set the length of coordinate frame axes for visualization
+axis_length = 0.2;
 
+% Draw base frame (frame 0)
+line('Xdata', [0, axis_length], 'Ydata', [0, 0], 'Zdata', [0, 0], 'Color', 'r', 'LineWidth', 2);
+line('Xdata', [0, 0], 'Ydata', [0, axis_length], 'Zdata', [0, 0], 'Color', 'g', 'LineWidth', 2);
+line('Xdata', [0, 0], 'Ydata', [0, 0], 'Zdata', [0, axis_length], 'Color', 'b', 'LineWidth', 2);
 
-
+% Draw frames for each joint
+% Frame 1
+drawFrame(T.("T_0T1"), axis_length);
+% Frame 2
+drawFrame(T.("T_0T2"), axis_length);
+% Frame 3
+drawFrame(T.("T_0T3"), axis_length);
+% Frame 4
+drawFrame(T.("T_0T4"), axis_length);
+% Frame 5
+drawFrame(T.("T_0T5"), axis_length);
 
 figure(fig)
 view(3)
@@ -65,3 +82,28 @@ grid on
 axis equal
 xlabel('X');ylabel('Y');zlabel('Z');
 axis([-1,1, -1,1, -1,1]*3);
+end
+
+% Helper function to draw a coordinate frame at a specific transformation
+function drawFrame(T, length)
+    % Extract position and rotation from transformation matrix
+    pos = T(1:3,4);
+    
+    % X axis (red)
+    line('Xdata', [pos(1), pos(1) + length*T(1,1)],...
+         'Ydata', [pos(2), pos(2) + length*T(2,1)],...
+         'Zdata', [pos(3), pos(3) + length*T(3,1)],...
+         'Color', 'r', 'LineWidth', 2);
+    
+    % Y axis (green)
+    line('Xdata', [pos(1), pos(1) + length*T(1,2)],...
+         'Ydata', [pos(2), pos(2) + length*T(2,2)],...
+         'Zdata', [pos(3), pos(3) + length*T(3,2)],...
+         'Color', 'g', 'LineWidth', 2);
+    
+    % Z axis (blue)
+    line('Xdata', [pos(1), pos(1) + length*T(1,3)],...
+         'Ydata', [pos(2), pos(2) + length*T(2,3)],...
+         'Zdata', [pos(3), pos(3) + length*T(3,3)],...
+         'Color', 'b', 'LineWidth', 2);
+end
