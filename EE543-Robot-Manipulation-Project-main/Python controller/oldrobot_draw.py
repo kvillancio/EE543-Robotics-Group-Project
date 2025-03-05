@@ -22,7 +22,7 @@ def robot_draw(gamma):
 
     # Extract the position vectors from the transformation matrices
     positions = [T[:3, 3] for T in T_matrices_zero.values()]
-    
+
     # Convert positions to numpy array for easier manipulation
     positions = np.array(positions)
 
