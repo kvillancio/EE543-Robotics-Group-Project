@@ -1,4 +1,4 @@
-function [T] = robot_FK(theta)
+function [T, r] = robot_FK(theta)
 % robot_FK calculates the forward kinematics for the project robot
 %
 % Inputs:
