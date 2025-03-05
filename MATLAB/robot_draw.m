@@ -1,76 +1,109 @@
 function robot_draw(gamma, fig, frameNum)
-    % Draw the robot in 3D for given joint parameters
-    % gamma: a vector of joint angles
+% Draw the robot in 3D for given joint angles with coordinate frames
+% gamma: a vector of joint angles
 
-    persistent p
+persistent p
 
-    if nargin < 1
-        gamma = zeros(1,5);
-    end
+if nargin < 1
+    gamma = zeros(1,5);
+end
 
-    if nargin < 2
-        fig = gcf;
-        frameNum = 1;
-        camlight;
-    end
+if nargin < 2
+    fig = figure();
+    frameNum = 1;
+    camlight;
+end
 
-    % Compute the forward kinematics
-    T = robot_FK(gamma);
+% Compute the forward kinematics
+T = robot_FK(gamma);
 
-    % Extract the positions of the frames
-    num_joints = length(gamma);
-    positions = zeros(3, num_joints + 1);
-    positions(:, 1) = [0; 0; 0]; % Base frame position
+r_00r1 = T.("T_0T1")(1:3,4);
+r_00r2 = T.("T_0T1")(1:3,4);
+r_00r3 = T.("T_0T2")(1:3,4);
+r_00r4 = T.("T_0T3")(1:3,4);
+r_00r5 = T.("T_0T4")(1:3,4);
+r_00r6 = T.("T_0T5")(1:3,4);
 
-    % Extract positions from the transformation matrices
-    for i = 1:num_joints
-        T_matrix = T{:, i};
-        positions(:, i + 1) = T_matrix(1:3, 4);
-    end
 
-    axis_scale = 200;
-    if frameNum < 2
-        % Set up figure
-        fig = gcf;
-        % axis([-1, 1, -1, 1, 0, 1.7]*axis_scale);
-        xlabel('X');
-        ylabel('Y');
-        zlabel('Z');
-        title('Robot 3D Visualization');
-        view([1,1,1]);
-        axis equal;
-        camlight left;
+line01 = line('Xdata', [0, r_00r1(1)],...
+              'Ydata', [0, r_00r1(2)],...
+              'Zdata', [0, r_00r1(3)],...
+              'color', 'red');
 
-        % Plot the links
-        hold on;
-        grid on;
-        p.links = gobjects(1, num_joints);
-        for i = 1:num_joints
-            p.links(i) = plot3([positions(1, i), positions(1, i+1)], ...
-                               [positions(2, i), positions(2, i+1)], ...
-                               [positions(3, i), positions(3, i+1)], 'b-', 'LineWidth', 2);
-        end
+line12 = line('Xdata', [r_00r1(1), r_00r2(1)],...
+              'Ydata', [r_00r1(2), r_00r2(2)],...
+              'Zdata', [r_00r1(3), r_00r2(3)],...
+              'color', 'black');
 
-        % Plot the frames
-        p.frames = gobjects(1, num_joints + 1);
-        for i = 1:num_joints + 1
-            p.frames(i) = plot3(positions(1, i), positions(2, i), positions(3, i), 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r');
-        end
-        hold off;
-    else
-        % Update the links
-        for i = 1:num_joints
-            set(p.links(i), 'XData', [positions(1, i), positions(1, i+1)], ...
-                            'YData', [positions(2, i), positions(2, i+1)], ...
-                            'ZData', [positions(3, i), positions(3, i+1)]);
-        end
+line23 = line('Xdata', [r_00r2(1), r_00r3(1)],...
+              'Ydata', [r_00r2(2), r_00r3(2)],...
+              'Zdata', [r_00r2(3), r_00r3(3)],...
+              'color', 'red');
 
-        % Update the frames
-        for i = 1:num_joints + 1
-            set(p.frames(i), 'XData', positions(1, i), ...
-                             'YData', positions(2, i), ...
-                             'ZData', positions(3, i));
-        end
-    end
-    axis([-1, 1, -1, 1, -1, 1.7]*axis_scale);
+line34 = line('Xdata', [r_00r3(1), r_00r4(1)],...
+              'Ydata', [r_00r3(2), r_00r4(2)],...
+              'Zdata', [r_00r3(3), r_00r4(3)],...
+              'color', 'black');
+
+line45 = line('Xdata', [r_00r4(1), r_00r5(1)],...
+              'Ydata', [r_00r4(2), r_00r5(2)],...
+              'Zdata', [r_00r4(3), r_00r5(3)],...
+              'color', 'red');
+
+line56 = line('Xdata', [r_00r5(1), r_00r6(1)],...
+              'Ydata', [r_00r5(2), r_00r6(2)],...
+              'Zdata', [r_00r5(3), r_00r6(3)],...
+              'color', 'black');
+
+% Draw coordinate frames at each joint
+% Set the length of coordinate frame axes for visualization
+axis_length = 0.2;
+
+% Draw base frame (frame 0)
+line('Xdata', [0, axis_length], 'Ydata', [0, 0], 'Zdata', [0, 0], 'Color', 'r', 'LineWidth', 2);
+line('Xdata', [0, 0], 'Ydata', [0, axis_length], 'Zdata', [0, 0], 'Color', 'g', 'LineWidth', 2);
+line('Xdata', [0, 0], 'Ydata', [0, 0], 'Zdata', [0, axis_length], 'Color', 'b', 'LineWidth', 2);
+
+% Draw frames for each joint
+% Frame 1
+drawFrame(T.("T_0T1"), axis_length);
+% Frame 2
+drawFrame(T.("T_0T2"), axis_length);
+% Frame 3
+drawFrame(T.("T_0T3"), axis_length);
+% Frame 4
+drawFrame(T.("T_0T4"), axis_length);
+% Frame 5
+drawFrame(T.("T_0T5"), axis_length);
+
+figure(fig)
+view(3)
+grid on
+axis equal
+xlabel('X');ylabel('Y');zlabel('Z');
+axis([-1,1, -1,1, -1,1]*3);
+end
+
+% Helper function to draw a coordinate frame at a specific transformation
+function drawFrame(T, length)
+    % Extract position and rotation from transformation matrix
+    pos = T(1:3,4);
+    
+    % X axis (red)
+    line('Xdata', [pos(1), pos(1) + length*T(1,1)],...
+         'Ydata', [pos(2), pos(2) + length*T(2,1)],...
+         'Zdata', [pos(3), pos(3) + length*T(3,1)],...
+         'Color', 'r', 'LineWidth', 2);
+    
+    % Y axis (green)
+    line('Xdata', [pos(1), pos(1) + length*T(1,2)],...
+         'Ydata', [pos(2), pos(2) + length*T(2,2)],...
+         'Zdata', [pos(3), pos(3) + length*T(3,2)],...
+         'Color', 'g', 'LineWidth', 2);
+    
+    % Z axis (blue)
+    line('Xdata', [pos(1), pos(1) + length*T(1,3)],...
+         'Ydata', [pos(2), pos(2) + length*T(2,3)],...
+         'Zdata', [pos(3), pos(3) + length*T(3,3)],...
+         'Color', 'b', 'LineWidth', 2);
 end

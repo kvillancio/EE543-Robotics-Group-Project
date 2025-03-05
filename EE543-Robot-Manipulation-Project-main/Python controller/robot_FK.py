@@ -1,72 +1,98 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Feb 27 18:10:21 2025
-
-@author: ian
-"""
-
 import numpy as np
-import AdelmanPy as ap
+from math import sin, cos
 
-def FK(theta):
+def dh_transform(theta, d, a, alpha):
     """
-    Calculate the forward kinematics for the project robot.
-
-    Args:
-        theta (np.ndarray): A 5x1 vector of joint angles [theta1, theta2, theta3, theta4, theta5].
-
-    Returns:
-        T (np.ndarray): Homogeneous transormation matrix from base to end-effector.
-    """
+    Compute the DH transformation matrix for a single joint.
     
-    # Link lengths
-    l1 = .23
-    l2 = .12
-    l3 = .53
-    l4 = .12
-    l5 = .19
+    Args:
+        theta: joint angle (rotation around z-axis)
+        d: link offset (translation along z-axis)
+        a: link length (translation along x-axis)
+        alpha: link twist (rotation around x-axis)
+    
+    Returns:
+        4x4 homogeneous transformation matrix
+    """
+    T = np.array([
+        [           cos(theta),           -sin(theta),           0,             a],
+        [sin(theta)*cos(alpha), cos(theta)*cos(alpha), -sin(alpha), -sin(alpha)*d],
+        [sin(theta)*sin(alpha), cos(theta)*sin(alpha),  cos(alpha),  cos(alpha)*d],
+        [                    0,                     0,           0,             1]]
+    )
+    return T
 
-    # DH parameters [a, alpha, d, theta]
-    DH = [
-        [             0, l1,  0, theta[0]],
-        [np.deg2rad(90), l2,  0, theta[1]],
-        [             0, l3,  0, theta[2]],
-        [np.deg2rad(90),  0, l4, theta[3]],
-        [             0,  0, l5,        0]
-    ]
-
+def robot_FK(q, robot_params=None):
+    """
+    Compute the forward kinematics of the robot.
+    
+    Args:
+        q: Joint angles [q1, q2, q3, q4, q5, q6] in radians
+        robot_params: Dictionary containing robot parameters (optional)
+    
+    Returns:
+        T: 4x4 homogeneous transformation matrix from base to end-effector
+        Ts: List of 4x4 homogeneous transformation matrices for each joint
+    """
+    # Default DH parameters for a 6-DOF manipulator
+    # These should be replaced with the actual parameters of your robot
+    if robot_params is None:
+        # Example DH parameters [a, alpha, d, theta_offset]
+        # For a standard 6-DOF manipulator
+        robot_params = {
+            'DH': [
+            [0, 0, 1, 0],                      # Joint 1
+            [0, -np.pi/2, 0, 0],               # Joint 2
+            [1, 0, 0, 0],                      # Joint 3
+            [1, np.pi/2, 0, np.pi/2],          # Joint 4
+            [0, np.pi/2, 0, 0],                # Joint 5
+            [0, 0, 1, 0]                       # Joint 6
+            ]
+        }
+    
     # Initialize transformation matrices
-    T_0T1 = ap.DH2T([0, 0, 0, 0], DH[0])
-    T_1T2 = ap.DH2T(DH[0], DH[1])
-    T_2T3 = ap.DH2T(DH[1], DH[2])
-    T_3T4 = ap.DH2T(DH[2], DH[3])
-    T_4T5 = ap.DH2T(DH[3], DH[4])
-    # Store all transformation matrices
-    T_matrices = {
-        'T_0T1': T_0T1,
-        'T_1T2': T_1T2,
-        'T_2T3': T_2T3,
-        'T_3T4': T_3T4,
-        'T_4T5': T_4T5
-    }
+    T = np.eye(4)
+    Ts = []
+    
+    # Compute forward kinematics
+    for i in range(len(q)):
+        # Extract DH parameters for current joint
+        a, alpha, d, theta_offset = robot_params['DH'][i]
+        
+        # Compute joint transformation
+        T_i = dh_transform(q[i] + theta_offset, d, a, alpha)
+        
+        # Accumulate transformation
+        T = T @ T_i
+        Ts.append(T.copy())
+    
+    return T, Ts
 
-    # Calculate all transformation matrices with respect to frame zero
-    T_0T2 = T_0T1 @ T_1T2
-    T_0T3 = T_0T2 @ T_2T3
-    T_0T4 = T_0T3 @ T_3T4
-    T_0T5 = T_0T4 @ T_4T5
+def get_position_orientation(T):
+    """
+    Extract position and orientation from transformation matrix.
+    
+    Args:
+        T: 4x4 homogeneous transformation matrix
+    
+    Returns:
+        position: [x, y, z]
+        orientation: rotation matrix (3x3)
+    """
+    position = T[0:3, 3]
+    orientation = T[0:3, 0:3]
+    
+    return position, orientation
 
-    T_matrices_zero = {
-        'T_0T1': T_0T1,
-        'T_0T2': T_0T2,
-        'T_0T3': T_0T3,
-        'T_0T4': T_0T4,
-        'T_0T5': T_0T5
-    }
-
-    # Return the results
-    return T_matrices, T_matrices_zero
-
-
-
+if __name__ == "__main__":
+    # Example usage
+    q = np.array([0, 0, 0, 0, 0, 0])  # Zero configuration
+    
+    # Compute forward kinematics
+    T, Ts = robot_FK(q)
+    
+    # Get position and orientation
+    position, orientation = get_position_orientation(T)
+    
+    print("End-effector position:", position)
+    print("End-effector orientation:\n", orientation)

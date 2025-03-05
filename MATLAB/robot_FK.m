@@ -24,24 +24,57 @@ l3 = 92.77;  % mm
 l4 = 52.5;   % mm
 l5 = 165.39; % mm
 
-DH = [          0, l1,  0, theta(1);...
-      deg2rad(90), l2,  0, theta(2);...
-                0, l3,  0, theta(3);...
-      deg2rad(90),  0, l4, theta(4);...
-                0,  0, l5,       0];
+% alpha, a, d, theta
+DH = [           0, 0,  1,              theta(1);...
+      deg2rad(-90), 0,  0,              theta(2);...
+                 0, 1,  0,              theta(3);...
+       deg2rad(90), 1,  0,  theta(4)+deg2rad(90);...
+       deg2rad(90), 0,  0,              theta(5);...
+                 0, 0,  1,                     0];
 
-T_0T1 = DH2T(zeros(1,4), DH(1,1:4));
-T_1T2 = DH2T(DH(1,1:4), DH(2,1:4));
-T_2T3 = DH2T(DH(2,1:4), DH(3,1:4));
-T_3T4 = DH2T(DH(3,1:4), DH(4,1:4));
-T_4T5 = DH2T(DH(4,1:4), DH(5,1:4));
-
-T_0T2 = T_0T1 * T_1T2;
-T_0T3 = T_0T2 * T_2T3;
-T_0T4 = T_0T3 * T_3T4;
-T_0T5 = T_0T4 * T_4T5;
-
+% IMPORTANT NOTES
+%   FRAME 2 is coincident with frame 1, with a constant offset to make the
+%   z-axis be correctly aligned
+%   FRAME 5 is coincident with frame 4, with a constant offset to make the
+%   z-axis be correctly aligned
+%
+%
 
 
-T = table(T_0T1, T_0T2, T_0T3, T_0T4, T_0T5, T_1T2, T_2T3, T_3T4, T_4T5);
+
+% Get number of frames
+n = size(DH, 1);
+
+T_i = cell(1, n);  % initialize transformation matrix cells
+
+% convert each DH row to a Transformation matrix
+for i = 1:n
+    T_i{i} = DH2T(DH(i,:));
+end
+
+% Calculate transformation matrices with respect to base frame
+T_0 = cell(1, n); 
+T_0{1} = T_i{1};
+for i = 2:n
+    T_0{i} = T_0{i-1} * T_i{i};
+end
+
+
+T_0T1 = T_i{1};
+T_1T2 = T_i{2};
+T_2T3 = T_i{3};
+T_3T4 = T_i{4};
+T_4T5 = T_i{5};
+T_5T6 = T_i{6};
+
+
+% T_0T1 = T_0{1};
+T_0T2 = T_0{2};
+T_0T3 = T_0{3};
+T_0T4 = T_0{4};
+T_0T5 = T_0{5};
+T_0T6 = T_0{6};
+
+
+T = table(T_0T1, T_0T2, T_0T3, T_0T4, T_0T5, T_0T6, T_1T2, T_2T3, T_3T4, T_4T5, T_5T6);
 end
