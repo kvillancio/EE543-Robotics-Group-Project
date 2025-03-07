@@ -1,6 +1,7 @@
 
-gamma = [3; -6; 6; 2; 0];
-fig = figure(1);
+gamma = [pi/4; -pi/4; pi/2; pi/3; 0];
+fig = gcf
 frameNum = 3;
 
+cla
 robot_draw(gamma, fig, frameNum)
