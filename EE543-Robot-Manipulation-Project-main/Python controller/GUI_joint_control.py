@@ -66,10 +66,14 @@ def home_robot():
     update_joints()
 
 def grasper_open():
-    RC.gripper_open()
+    global goals
+    goals[4] += increment
+    update_joints()
 
 def grasper_close():
-    RC.gripper_close()
+    global goals
+    goals[4] -= increment
+    update_joints()
 
 def exit_app():
     root.destroy()
