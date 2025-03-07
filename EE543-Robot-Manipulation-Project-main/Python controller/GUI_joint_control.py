@@ -7,7 +7,7 @@ from robot_controller import robot_controller
 RC = robot_controller()
 RC.communication_begin()
 RC.joints_homing()  # Force homing of the robot
-
+ 
 # Control parameters
 increment = 5               # Increment angle (in degrees)
 goals = np.zeros(RC.joint_num)

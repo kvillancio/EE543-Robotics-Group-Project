@@ -2,12 +2,13 @@ import time
 import numpy as np
 import serial
 import sys
+import matlab.engine  # Add this import for MATLAB engine
 
 np.set_printoptions(precision=2, suppress=False)
 np.set_printoptions(formatter={'all': lambda x: f'{x:.2f}'})
 
 class robot_controller():
-    def __init__(self) -> None:
+    def __init__(self, use_visualization=True) -> None:
         #define robot parameter
         self.joint_num = 5
         self.joints_goto_tolerance = 10e-3
@@ -67,6 +68,10 @@ class robot_controller():
         self.com_baudrate = 115200 #bps
         self.com_frequency = 30 #Hz
         
+        # Initialize MATLAB visualization if requested
+        self.use_visualization = use_visualization
+        if self.use_visualization:
+            self.initialize_matlab_visualization()
 
     """
     ---------------------------------------------------------------
@@ -98,6 +103,48 @@ class robot_controller():
      Functions below set up the visualization
     ---------------------------------------------------------------
     """
+    
+    def initialize_matlab_visualization(self):
+        """Initialize MATLAB engine for robot visualization"""
+        print("Starting MATLAB engine for visualization...")
+        self.matlab_engine = matlab.engine.start_matlab()
+        
+        # Get current directory of the Python script
+        import os
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # Fix the path to point to the correct MATLAB directory
+        matlab_dir = "/Users/ian/Documents/FinalProject/EE543-Robotics-Group-Project/MATLAB"      
+        
+        # Add both the main directory and the robo_utils subdirectory
+        self.matlab_engine.addpath(matlab_dir, nargout=0)
+        self.matlab_engine.addpath(os.path.join(matlab_dir, "robo_utils"), nargout=0)
+        
+        self.matlab_engine.cd(script_dir)
+        
+        # Convert angles from degrees to radians before sending to MATLAB
+        joint_poses_radians = np.deg2rad(self.robotstate_joint_poses)
+        matlab_array = matlab.double(joint_poses_radians.tolist())
+        
+        # Store the figure handle returned by robot_draw for reuse
+        self.fig_handle = self.matlab_engine.robot_draw(matlab_array, nargout=1)
+        print("MATLAB visualization initialized")
+
+    def update_matlab_visualization(self):
+        """Update the MATLAB visualization with current robot state"""
+        if hasattr(self, 'matlab_engine') and hasattr(self, 'fig_handle'):
+            # Convert angles from degrees to radians before sending to MATLAB
+            joint_poses_radians = np.deg2rad(self.robotstate_joint_poses)
+            matlab_array = matlab.double(joint_poses_radians.tolist())
+            
+            # Pass the stored figure handle to robot_draw
+            self.matlab_engine.robot_draw(matlab_array, self.fig_handle, nargout=0)
+    
+    def close_matlab_visualization(self):
+        """Close the MATLAB engine"""
+        if hasattr(self, 'matlab_engine'):
+            print("Closing MATLAB visualization engine")
+            self.matlab_engine.quit()
         
     """
     ---------------------------------------------------------------
@@ -207,6 +254,10 @@ class robot_controller():
             sys.stdout.write("\r" + "Robotstate: " + str(self.robotstate_joint_poses))
             sys.stdout.flush()    
             
+            # Update MATLAB visualization with current state
+            if hasattr(self, 'matlab_engine'):
+                self.update_matlab_visualization()
+                
             #check if the robot reach the goal joint poses
             if np.all(np.abs(self.robotstate_joint_poses - goals) <= self.joints_goto_tolerance):
                 reached_goal = True

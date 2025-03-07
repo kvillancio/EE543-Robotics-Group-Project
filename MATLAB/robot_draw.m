@@ -1,4 +1,4 @@
-function robot_draw(gamma, fig, frameNum)
+function [fig] = robot_draw(gamma, fig, frameNum)
 % Draw the robot in 3D for given joint angles with coordinate frames
 % gamma: a vector of joint angles
 
@@ -13,6 +13,9 @@ if nargin < 2
     frameNum = 1;
     camlight;
 end
+
+% clear axes
+cla
 
 % Compute the forward kinematics
 T = robot_FK(gamma);
