@@ -1,7 +1,7 @@
 import numpy as np
 from math import sin, cos
 
-def dh_transform(theta, d, a, alpha):
+def dh_transform(alpha, a, d, theta):
     """
     Compute the DH transformation matrix for a single joint.
     
@@ -22,77 +22,83 @@ def dh_transform(theta, d, a, alpha):
     )
     return T
 
-def robot_FK(q, robot_params=None):
+def FK(gamma):
     """
     Compute the forward kinematics of the robot.
     
     Args:
-        q: Joint angles [q1, q2, q3, q4, q5, q6] in radians
-        robot_params: Dictionary containing robot parameters (optional)
+        gamma: 5x1 vector of joint angles (rad)
     
     Returns:
-        T: 4x4 homogeneous transformation matrix from base to end-effector
-        Ts: List of 4x4 homogeneous transformation matrices for each joint
+        T_matrices: Dictionary of transformation matrices for each frame relative to its parent
+        T_matrices_zero: Dictionary of transformation matrices for each frame relative to base frame
     """
-    # Default DH parameters for a 6-DOF manipulator
-    # These should be replaced with the actual parameters of your robot
-    if robot_params is None:
-        # Example DH parameters [a, alpha, d, theta_offset]
-        # For a standard 6-DOF manipulator
-        robot_params = {
-            'DH': [
-            [0, 0, 1, 0],                      # Joint 1
-            [0, -np.pi/2, 0, 0],               # Joint 2
-            [1, 0, 0, 0],                      # Joint 3
-            [1, np.pi/2, 0, np.pi/2],          # Joint 4
-            [0, np.pi/2, 0, 0],                # Joint 5
-            [0, 0, 1, 0]                       # Joint 6
-            ]
-        }
+    if len(gamma) != 5:
+        raise ValueError("Expected 5 joint angles, got {}".format(len(gamma)))
+    
+    # Link lengths in mm
+    l1 = 0     # frames 0 and 1 are coincident
+    l2 = 62.8  # mm
+    l3 = 92.77 # mm
+    l4 = 52.5  # mm
+    l5 = 165.39 # mm
+    
+    # DH parameters [alpha, a, d, theta]
+    DH = [
+        [0,           0, 1,          gamma[0]],  # Joint 1
+        [-np.pi/2,    0, 0,          gamma[1]],  # Joint 2
+        [0,           1, 0,          gamma[2]],  # Joint 3
+        [np.pi/2,     1, 0,  np.pi/2+gamma[3]],  # Joint 4
+        [np.pi/2,     0, 0,          gamma[4]],  # Joint 5
+        [0,           0, 1,                 0]   # End effector frame - fixed offset
+    ]
     
     # Initialize transformation matrices
-    T = np.eye(4)
-    Ts = []
+    T_matrices = {}
+    T_matrices_zero = {}
+    T_0_i = np.eye(4)
     
-    # Compute forward kinematics
-    for i in range(len(q)):
-        # Extract DH parameters for current joint
-        a, alpha, d, theta_offset = robot_params['DH'][i]
+    # Calculate transformation matrices
+    for i in range(len(DH)):
+        # Extract DH parameters
+        alpha, a, d, theta = DH[i]
         
-        # Compute joint transformation
-        T_i = dh_transform(q[i] + theta_offset, d, a, alpha)
+        # Compute transformation matrix
+        T_i_minus1_i = dh_transform(theta, d, a, alpha)
         
-        # Accumulate transformation
-        T = T @ T_i
-        Ts.append(T.copy())
+        # Store the transformation matrix from frame i-1 to frame i
+        key = f"T_{i}T{i+1}"
+        T_matrices[key] = T_i_minus1_i
+        
+        # Compute and store the transformation matrix from base frame to frame i
+        T_0_i = T_0_i @ T_i_minus1_i
+        key_zero = f"T_0T{i+1}"
+        T_matrices_zero[key_zero] = T_0_i.copy()
     
-    return T, Ts
-
-def get_position_orientation(T):
-    """
-    Extract position and orientation from transformation matrix.
-    
-    Args:
-        T: 4x4 homogeneous transformation matrix
-    
-    Returns:
-        position: [x, y, z]
-        orientation: rotation matrix (3x3)
-    """
-    position = T[0:3, 3]
-    orientation = T[0:3, 0:3]
-    
-    return position, orientation
+    return T_matrices, T_matrices_zero
 
 if __name__ == "__main__":
     # Example usage
-    q = np.array([0, 0, 0, 0, 0, 0])  # Zero configuration
+    gamma = np.array([0, 0, 0, 0, 0])  # Zero configuration
     
     # Compute forward kinematics
-    T, Ts = robot_FK(q)
+    T_matrices, T_matrices_zero = FK(gamma)
     
-    # Get position and orientation
-    position, orientation = get_position_orientation(T)
+    # Print the results
+    print("Transformation matrices with respect to each frame:")
+    for key, value in T_matrices.items():
+        print(f"{key}:\n{value}\n")
     
-    print("End-effector position:", position)
-    print("End-effector orientation:\n", orientation)
+    print("Transformation matrices with respect to the base frame:")
+    for key, value in T_matrices_zero.items():
+        print(f"{key}:\n{value}\n")
+    
+    # Print end effector position
+    end_effector_position = T_matrices_zero["T_0T6"][0:3, 3]
+    print(f"End-effector position: {end_effector_position}")
+    
+    # Example with non-zero joint angles
+    gamma = np.array([1, 1, 1, 1, 1])
+    T_matrices, T_matrices_zero = FK(gamma)
+    end_effector_position = T_matrices_zero["T_0T6"][0:3, 3]
+    print(f"End-effector position with non-zero joint angles: {end_effector_position}")
