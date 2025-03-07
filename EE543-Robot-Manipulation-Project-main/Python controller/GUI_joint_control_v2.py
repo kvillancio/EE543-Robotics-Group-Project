@@ -4,7 +4,7 @@ import sys
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from robot_controller import robot_controller  # Ensure this import matches your setup
-from robot_draw import draw_robot  # Import the draw_robot function instead of RobotDraw class
+# from robot_draw import draw_robot  # Import the draw_robot function instead of RobotDraw class
 
 # Initialize robot controller (ensure correct initialization)
 RC = robot_controller()
