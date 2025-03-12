@@ -137,5 +137,42 @@ btn_grasp_close.grid(row=6, column=2, padx=5, pady=5)
 btn_exit = tk.Button(frame, text="Exit", command=exit_app, width=12, bg="red", fg="white")
 btn_exit.grid(row=6, column=3, padx=5, pady=5)
 
+# Add input fields for x, y, z coordinates
+lbl_xyz = tk.Label(frame, text="XYZ Control", font=("Helvetica", 14))
+lbl_xyz.grid(row=7, column=0, columnspan=4, pady=(10, 10))
+
+entry_x = tk.Entry(frame, width=10)
+entry_x.grid(row=8, column=0, padx=5, pady=5)
+entry_x.insert(0, "X")
+
+entry_y = tk.Entry(frame, width=10)
+entry_y.grid(row=8, column=1, padx=5, pady=5)
+entry_y.insert(0, "Y")
+
+entry_z = tk.Entry(frame, width=10)
+entry_z.grid(row=8, column=2, padx=5, pady=5)
+entry_z.insert(0, "Z")
+
+# Add button to trigger inverse kinematics
+btn_ik = tk.Button(frame, text="Move to XYZ", command=move_to_xyz, width=12)
+btn_ik.grid(row=8, column=3, padx=5, pady=5)
+
+# Function to handle inverse kinematics
+
+def move_to_xyz():
+    try:
+        x = float(entry_x.get())
+        y = float(entry_y.get())
+        z = float(entry_z.get())
+        desired_pos = np.array([x, y, z])
+        # Call robot_IK to get joint angles
+        joint_angles = robot_IK(desired_pos, goals)
+        # Update goals with new joint angles
+        global goals
+        goals = joint_angles
+        update_joints()
+    except ValueError:
+        print("Invalid input for XYZ coordinates")
+
 # Start the Tkinter event loop
 root.mainloop()
