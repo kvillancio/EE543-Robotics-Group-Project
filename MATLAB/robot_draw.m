@@ -60,7 +60,7 @@ line56 = line('Xdata', [r_00r5(1), r_00r6(1)],...
 
 % Draw coordinate frames at each joint
 % Set the length of coordinate frame axes for visualization
-axis_length = 0.2;
+axis_length = 20;
 
 % Draw base frame (frame 0)
 line('Xdata', [0, axis_length], 'Ydata', [0, 0], 'Zdata', [0, 0], 'Color', 'r', 'LineWidth', 2);
@@ -74,17 +74,19 @@ drawFrame(T.("T_0T1"), axis_length);
 drawFrame(T.("T_0T2"), axis_length);
 % Frame 3
 drawFrame(T.("T_0T3"), axis_length);
-% Frame 4
+% Frame Constant rotation 3 -> 4
 drawFrame(T.("T_0T4"), axis_length);
-% Frame 5
+% Frame 4
 drawFrame(T.("T_0T5"), axis_length);
+% Frame 5
+drawFrame(T.("T_0T6"), axis_length);
 
 figure(fig)
 view(3)
 grid on
 axis equal
 xlabel('X');ylabel('Y');zlabel('Z');
-axis([-1,1, -1,1, -1,1]*3);
+axis([-1,1, -1,1, -.3,1]*200);
 end
 
 % Helper function to draw a coordinate frame at a specific transformation
