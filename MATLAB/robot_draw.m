@@ -87,7 +87,7 @@ figure(fig)
 grid on
 axis equal
 xlabel('X');ylabel('Y');zlabel('Z');
-axis([-1,1, -1,1, -.3,1]*200);
+% axis([-1,1, -1,1, -.3,1]*325);
 end
 
 % Helper function to draw a coordinate frame at a specific transformation
