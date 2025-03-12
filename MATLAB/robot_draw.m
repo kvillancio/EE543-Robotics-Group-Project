@@ -16,6 +16,7 @@ end
 
 % clear axes
 cla
+view(3)
 
 % Compute the forward kinematics
 T = robot_FK(gamma);
@@ -25,7 +26,7 @@ r_00r2 = T.("T_0T1")(1:3,4);
 r_00r3 = T.("T_0T2")(1:3,4);
 r_00r4 = T.("T_0T3")(1:3,4);
 r_00r5 = T.("T_0T4")(1:3,4);
-r_00r6 = T.("T_0T5")(1:3,4);
+r_00r6 = T.("T_0T6")(1:3,4);
 
 
 line01 = line('Xdata', [0, r_00r1(1)],...
@@ -82,7 +83,7 @@ drawFrame(T.("T_0T5"), axis_length);
 drawFrame(T.("T_0T6"), axis_length);
 
 figure(fig)
-view(3)
+% view(3)
 grid on
 axis equal
 xlabel('X');ylabel('Y');zlabel('Z');
