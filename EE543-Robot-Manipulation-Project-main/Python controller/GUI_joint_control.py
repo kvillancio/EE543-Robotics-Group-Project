@@ -80,6 +80,25 @@ def exit_app():
     RC.communication_end()
     sys.exit('Closing GUI controller')
 
+# Add these functions for Cartesian control
+def move_x_plus():
+    RC.move_end_effector_by(dx=5, speed=speeds[0])
+
+def move_x_minus():
+    RC.move_end_effector_by(dx=-5, speed=speeds[0])
+
+def move_y_plus():
+    RC.move_end_effector_by(dy=5, speed=speeds[0])
+
+def move_y_minus():
+    RC.move_end_effector_by(dy=-5, speed=speeds[0])
+
+def move_z_plus():
+    RC.move_end_effector_by(dz=5, speed=speeds[0])
+
+def move_z_minus():
+    RC.move_end_effector_by(dz=-5, speed=speeds[0])
+
 # Create the main GUI window
 root = tk.Tk()
 root.title("EE543 Arm Controller")
@@ -120,22 +139,47 @@ btn_joint4_plus.grid(row=4, column=0, padx=5, pady=5)
 btn_joint4_minus = tk.Button(frame, text="Joint 4 -", command=joint4_minus, width=12)
 btn_joint4_minus.grid(row=4, column=1, padx=5, pady=5)
 
+# Label for Cartesian control area
+lbl_cartesian = tk.Label(frame, text="Cartesian Control", font=("Helvetica", 14))
+lbl_cartesian.grid(row=5, column=0, columnspan=4, pady=(10, 10))
+
+# X-axis Controls
+btn_x_plus = tk.Button(frame, text="X +", command=move_x_plus, width=12)
+btn_x_plus.grid(row=6, column=0, padx=5, pady=5)
+
+btn_x_minus = tk.Button(frame, text="X -", command=move_x_minus, width=12)
+btn_x_minus.grid(row=6, column=1, padx=5, pady=5)
+
+# Y-axis Controls
+btn_y_plus = tk.Button(frame, text="Y +", command=move_y_plus, width=12)
+btn_y_plus.grid(row=7, column=0, padx=5, pady=5)
+
+btn_y_minus = tk.Button(frame, text="Y -", command=move_y_minus, width=12)
+btn_y_minus.grid(row=7, column=1, padx=5, pady=5)
+
+# Z-axis Controls
+btn_z_plus = tk.Button(frame, text="Z +", command=move_z_plus, width=12)
+btn_z_plus.grid(row=8, column=0, padx=5, pady=5)
+
+btn_z_minus = tk.Button(frame, text="Z -", command=move_z_minus, width=12)
+btn_z_minus.grid(row=8, column=1, padx=5, pady=5)
+
 # Label for extra controls
 lbl_extra = tk.Label(frame, text="Other Controls", font=("Helvetica", 14))
-lbl_extra.grid(row=5, column=0, columnspan=4, pady=(10, 10))
+lbl_extra.grid(row=9, column=0, columnspan=4, pady=(10, 10))
 
 # Additional control buttons
 btn_home = tk.Button(frame, text="Home Robot", command=home_robot, width=12)
-btn_home.grid(row=6, column=0, padx=5, pady=5)
+btn_home.grid(row=10, column=0, padx=5, pady=5)
 
 btn_grasp_open = tk.Button(frame, text="Grasper Open", command=grasper_open, width=12)
-btn_grasp_open.grid(row=6, column=1, padx=5, pady=5)
+btn_grasp_open.grid(row=10, column=1, padx=5, pady=5)
 
 btn_grasp_close = tk.Button(frame, text="Grasper Close", command=grasper_close, width=12)
-btn_grasp_close.grid(row=6, column=2, padx=5, pady=5)
+btn_grasp_close.grid(row=10, column=2, padx=5, pady=5)
 
 btn_exit = tk.Button(frame, text="Exit", command=exit_app, width=12, bg="red", fg="white")
-btn_exit.grid(row=6, column=3, padx=5, pady=5)
+btn_exit.grid(row=10, column=3, padx=5, pady=5)
 
 # Start the Tkinter event loop
 root.mainloop()

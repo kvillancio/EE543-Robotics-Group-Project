@@ -1,7 +1,7 @@
 import time
 import numpy as np
 import serial
-import sys
+import sys, os
 import matlab.engine  # Add this import for MATLAB engine
 
 np.set_printoptions(precision=2, suppress=False)
@@ -219,24 +219,18 @@ class robot_controller():
 
     
     # this is the goto function in joint space
-    # input is the array of joint poses(in degree) and the arry of joint velocities(degree/s)  
     def joints_goto(self, goals, speeds):
         # get the current robot joint poses
         start_poses = self.robotstate_joint_poses.copy()
-        # print("Start Poses: ", start_poses)
         # calculate the rotation direction of each joints
         angle_diff = goals - start_poses
-        # print("angle difference: ", angle_diff)
         # calculate the angle increments under 20Hz update rates
         angle_increments = np.sign(angle_diff) * (speeds / self.com_frequency)
         
-
         reached_goal = False        
         # update the robot joint poses by adding the angle increments
         while not reached_goal:
             start = time.time()
-            # print("Start Poses: ", start_poses)
-            # print("angle difference: ", angle_diff)
 
             # Generate 8 uint8_t numbers
             self.robotstate_joint_poses += angle_increments
@@ -248,11 +242,43 @@ class robot_controller():
                     self.robotstate_joint_poses[i] = np.clip(self.robotstate_joint_poses[i], goals[i], start_poses[i])
                 else:
                     self.robotstate_joint_poses[i] = start_poses[i].copy()
-            # print("Robotstate: ",self.robotstate_joint_poses)
-            # Set the desired print options
-            sys.stdout.write('\r' + ' ' * 50 + '\r') # clear the line
-            sys.stdout.write("\r" + "Robotstate: " + str(self.robotstate_joint_poses))
-            sys.stdout.flush()    
+                    
+            # Enhanced state display with degrees, radians, and XYZ position
+            sys.stdout.write('\r' + ' ' * 100 + '\r')  # clear the line with more space
+            
+            # Get current joint angles in radians and position using FK
+            current_rad = np.deg2rad(self.robotstate_joint_poses)
+            position_str = "Unknown"
+            
+            if hasattr(self, 'matlab_engine'):
+                try:
+                    # Convert to MATLAB format and get FK
+                    matlab_joint_angles = matlab.double(current_rad.tolist())
+                    
+                    # Use MATLAB workspace to safely extract position
+                    self.matlab_engine.workspace['joints'] = matlab_joint_angles
+                    self.matlab_engine.eval("T = robot_FK(joints);", nargout=0)
+                    self.matlab_engine.eval("pos = T.T_0T6(1:3, 4);", nargout=0)
+                    position = self.matlab_engine.workspace['pos']
+                    
+                    # Format position as a string with 2 decimal places
+                    x = float(position[0][0])
+                    y = float(position[1][0])
+                    z = float(position[2][0])
+                    position_str = f"X:{x:.2f}, Y:{y:.2f}, Z:{z:.2f}"
+                except Exception as e:
+                    position_str = f"FK Error: {str(e)}"
+            
+            # Display all state information
+            # Clear terminal completely before writing new status
+            os.system('clear')  # For macOS/Linux
+            # For Windows, we would use: os.system('cls')
+
+            state_info = (f"Joint angles (deg): {str(self.robotstate_joint_poses)} | " + 
+                         f"Joint angles (rad): {str(current_rad)} | " + 
+                         f"Position (mm): {position_str}")
+            print(state_info, end="")
+            sys.stdout.flush()
             
             # Update MATLAB visualization with current state
             if hasattr(self, 'matlab_engine'):
@@ -336,3 +362,71 @@ class robot_controller():
         if self.ser.read() == b'A':
             self.ser.write(numbers)
             self.ser.flush()
+
+    def move_end_effector_by(self, dx=0, dy=0, dz=0, speed=80):
+        """
+        Move the end effector by the specified increments in X, Y, and Z directions.
+        
+        Args:
+            dx: Increment in X direction (mm)
+            dy: Increment in Y direction (mm)
+            dz: Increment in Z direction (mm)
+            speed: Joint speed in degrees/second
+        
+        Returns:
+            bool: True if the movement was successful, False otherwise
+        """
+        if not hasattr(self, 'matlab_engine'):
+            print("MATLAB engine not initialized. Cannot perform inverse kinematics.")
+            return False
+        
+        try:
+            # Convert current joint angles to radians for MATLAB
+            current_joint_angles_rad = np.deg2rad(self.robotstate_joint_poses)
+            matlab_joint_angles = matlab.double(current_joint_angles_rad.tolist())
+            
+            # Use workspace variables to handle data conversion more reliably
+            self.matlab_engine.workspace['joints'] = matlab_joint_angles
+            self.matlab_engine.eval("T = robot_FK(joints);", nargout=0)
+            self.matlab_engine.eval("pos = T.T_0T6(1:3, 4);", nargout=0)
+            
+            # Get the position as a proper MATLAB array
+            matlab_position = self.matlab_engine.workspace['pos']
+            
+            # Extract the values from the MATLAB array directly
+            x = float(matlab_position[0][0])
+            y = float(matlab_position[1][0]) 
+            z = float(matlab_position[2][0])
+            
+            # Calculate desired position by adding increments
+            desired_x = x + dx
+            desired_y = y + dy
+            desired_z = z + dz
+            
+            # Create MATLAB array for desired position
+            matlab_desired_position = matlab.double([[desired_x], [desired_y], [desired_z]])
+            
+            # Call IK function to get new joint angles
+            self.matlab_engine.workspace['target_pos'] = matlab_desired_position
+            self.matlab_engine.workspace['initial_joints'] = matlab_joint_angles
+            self.matlab_engine.eval("new_joints = robot_IK(target_pos, initial_joints);", nargout=0)
+            new_joint_angles_rad = self.matlab_engine.workspace['new_joints']
+            
+            # Convert to numpy array and then to degrees, ensuring proper shape
+            # Fix the shape mismatch by converting to a flat array first
+            new_joint_angles = np.array(new_joint_angles_rad).flatten()
+            new_joint_angles_deg = np.rad2deg(new_joint_angles)
+            
+            # Make sure it matches the expected shape for joints_goto
+            if new_joint_angles_deg.shape != self.robotstate_joint_poses.shape:
+                new_joint_angles_deg = new_joint_angles_deg[:self.joint_num]
+            
+            # Move the robot to the new joint positions
+            speeds = np.ones(self.joint_num) * speed
+            self.joints_goto(new_joint_angles_deg, speeds)
+            
+            return True
+        
+        except Exception as e:
+            print(f"Error in inverse kinematics calculation: {e}")
+            return False
