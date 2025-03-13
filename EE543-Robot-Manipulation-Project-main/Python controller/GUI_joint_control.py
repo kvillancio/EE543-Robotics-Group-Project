@@ -82,22 +82,40 @@ def exit_app():
 
 # Add these functions for Cartesian control
 def move_x_plus():
+    global goals
     RC.move_end_effector_by(dx=5, speed=speeds[0])
+    # Update goals to match the new robot state after IK movement
+    goals = RC.robotstate_joint_poses.copy()
 
 def move_x_minus():
+    global goals
     RC.move_end_effector_by(dx=-5, speed=speeds[0])
+    # Update goals to match the new robot state after IK movement
+    goals = RC.robotstate_joint_poses.copy()
 
 def move_y_plus():
+    global goals
     RC.move_end_effector_by(dy=5, speed=speeds[0])
+    # Update goals to match the new robot state after IK movement
+    goals = RC.robotstate_joint_poses.copy()
 
 def move_y_minus():
+    global goals
     RC.move_end_effector_by(dy=-5, speed=speeds[0])
+    # Update goals to match the new robot state after IK movement
+    goals = RC.robotstate_joint_poses.copy()
 
 def move_z_plus():
+    global goals
     RC.move_end_effector_by(dz=5, speed=speeds[0])
+    # Update goals to match the new robot state after IK movement
+    goals = RC.robotstate_joint_poses.copy()
 
 def move_z_minus():
+    global goals
     RC.move_end_effector_by(dz=-5, speed=speeds[0])
+    # Update goals to match the new robot state after IK movement
+    goals = RC.robotstate_joint_poses.copy()
 
 # Create the main GUI window
 root = tk.Tk()
