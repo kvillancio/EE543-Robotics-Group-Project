@@ -1,4 +1,4 @@
-function [T, r] = robot_FK(theta)
+function [T, optional] = robot_FK(theta)
 % robot_FK calculates the forward kinematics for the project robot
 %
 % Inputs:
@@ -23,6 +23,8 @@ l2 = 62.8;   % mm
 l3 = 92.77;  % mm
 l4 = 52.5;   % mm
 l5 = 165.39; % mm
+
+optional = table(l2,l3,l4,l5);
 
 % alpha, a, d, theta
 DH = [           0,  0,  l2, theta(1);...
