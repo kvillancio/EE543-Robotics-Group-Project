@@ -1,5 +1,10 @@
 
-gamma = [pi/4; -pi/4; pi/2; pi/3; 0];
+gamma = [0;... % theta1
+         0;... % theta2
+         0;... % theta3
+         0;... % theta4
+         0];
+
 fig = gcf
 frameNum = 3;
 
